@@ -67,6 +67,7 @@ The rungs work under any main model, but the main thread pays for every turn of 
 
 - Routing is the main model's judgment. With the per-prompt nudge, Sonnet high delegated a 3-file color change to `haiku`, but did a small feature (t2) itself.
 - The bench didn't find where Haiku breaks, because every task had a runnable check that the model could iterate against. For unverifiable or long-horizon work, start higher. The policy says so.
+- Haiku writes code only for small tasks with a runnable check, the case the bench tested. Otherwise it's a helper for the bigger rungs (searches, triage, check runs), following the practitioner view that small models pay off as helpers rather than main coders. Its cheap price holds only for prompts under 100K tokens; above that it costs 5x.
 - Numbers are tied to the 5.5 models. Agents pin full model IDs, so re-check the tables when new models ship.
 
 ## Re-running the bench
