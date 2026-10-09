@@ -11,22 +11,37 @@ A Claude Code plugin that lets your main model hand each task to the cheapest mo
 | Rungs | `agents/*.md` | Subagents with the model and effort fixed in frontmatter: `haiku`, `sonnet-high`, `opus-medium`, `opus-high`, `opus-xhigh` |
 | Max guard | `PreToolUse` hook on `Agent` | Blocks any spawn that requests `effort: max` |
 
-Delegation always goes down and escalation always goes up. A rung may hand mechanical sub-pieces to cheaper rungs (Claude Code allows nesting 3 levels deep), but it never spawns its own rung or a stronger one. Instead it replies `ESCALATE:` with its findings, and the main thread picks the next rung. Haiku has no `Agent` tool.
+Delegation always goes down and escalation always goes up. A rung may hand mechanical sub-pieces to cheaper rungs (by default Claude Code allows subagents up to three layers below the main conversation; `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` changes that), but it never spawns its own rung or a stronger one. Instead it replies `ESCALATE:` with its findings, and the main thread picks the next rung. Haiku has no `Agent` tool.
 
 **Why subagents:** a model can't switch its own session's model or effort (`/model` and the PreModelSwitch hook only cover switches you or an SDK host request), so subagents are the only lever it can pull itself. The costs: a cold Sonnet or Opus subagent spends about $0.1–0.25 caching its system prompt before doing any work, and the result has to be handed back to the main thread. That is why the policy keeps tiny jobs in the main thread.
+
+## Requirements
+
+- Claude Code with plugin support. The rungs set their model and effort through the subagent `model` and `effort` frontmatter fields.
+- Access to Haiku 5.5, Sonnet 5.5 and Opus 5.5. The rungs pin full model IDs (`claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`). If your account or provider names them differently, edit `model:` in `agents/*.md`.
+- The hooks are POSIX shell one-liners (`cat`, `grep`, `echo`).
 
 ## Install
 
 ```bash
-claude plugin marketplace add ~/Projects/NawkaRouter
+claude plugin marketplace add nawka12/NawkaRouter
 claude plugin install nawka-router@nawka
-# or, for one session only:
-claude --plugin-dir ~/Projects/NawkaRouter
+```
+
+Inside a session, `/plugin marketplace add nawka12/NawkaRouter` followed by `/plugin install nawka-router@nawka` does the same thing. The policy is injected at session start, so start a new session after you install.
+
+To try it for a single session without installing it, clone the repo and point `--plugin-dir` at the clone:
+
+```bash
+git clone https://github.com/nawka12/NawkaRouter.git
+claude --plugin-dir ./NawkaRouter
 ```
 
 ## The data behind the rungs
 
-### Artificial Analysis (with fallback; cost = $ per Intelligence Index task)
+### Artificial Analysis (AA)
+
+Cost is AA's dollar cost per Intelligence Index task. AA has no Terminal-Bench score for Haiku, so that cell uses Anthropic's published figure.
 
 | Config | Intelligence Index | Terminal-Bench 4.0 | $/task | Verdict |
 |---|---|---|---|---|
@@ -61,15 +76,21 @@ Low passed every bench task too, but on Haiku it saved only about $0–0.09 per 
 
 The rungs work under any main model, but the main thread pays for every turn of conversation, review, and routing. Based on the table:
 - **Sonnet 5.5 high** is the cheapest main model on the frontier with enough judgment to route. Don't use Sonnet medium: Haiku xhigh matches its score at 1/4 the cost.
-- **Opus 5.5 medium** if you want stronger judgment in the main thread. Your current Opus xhigh main costs about 2.6× as much as Opus medium per AA task ($3.46 vs $1.34), and that applies to everything the main thread does itself, including routing and review.
+- **Opus 5.5 medium** if you want stronger judgment in the main thread. An Opus xhigh main thread costs about 2.6× as much as Opus medium per AA task ($3.46 vs $1.34), and that applies to everything the main thread does itself, including routing and review.
 
 ## Limits
 
 - Routing is the main model's judgment. With the per-prompt nudge, Sonnet high delegated a 3-file color change to `haiku`, but did a small feature (t2) itself.
 - The bench didn't find where Haiku breaks, because every task had a runnable check that the model could iterate against. For unverifiable or long-horizon work, start higher. The policy says so.
-- Haiku writes code only for small tasks with a runnable check, the case the bench tested. Otherwise it's a helper for the bigger rungs (searches, triage, check runs), following the practitioner view that small models pay off as helpers rather than main coders. Its cheap price holds only for prompts under 100K tokens; above that it costs 5x.
+- Haiku writes code only for small tasks with a runnable check, the case the bench tested. Otherwise it's a helper for the bigger rungs (searches, triage, check runs). Its cheap price holds only for prompts under 100K tokens; above that it costs 5x.
 - Numbers are tied to the 5.5 models. Agents pin full model IDs, so re-check the tables when new models ship.
 
 ## Re-running the bench
 
-`python3 bench/run.py --configs haiku:medium,sonnet:high --tasks t1,t4 --trials 2` runs headless `claude -p` sessions, which **spend your usage**. The runner resumes after interruptions. `r.<model>:<effort>` configs run a main session with this plugin loaded and record which rungs it spawned. `--warm` measures only the task turn of an already-warm session; that's the fair way to compare routed and solo cost, but it hasn't been run yet. `--summary bench/results/runs.jsonl` prints the table.
+```bash
+python3 bench/run.py --configs haiku:medium,sonnet:high --tasks t1,t4 --trials 2 --out bench/results/mine.jsonl
+```
+
+This runs headless `claude -p` sessions, which **spend your usage**. It needs the `claude` CLI on your `PATH` and Python 3.9 or later; the runner and graders use only the standard library. Default tasks are t1–t5; add t6 with `--tasks`.
+
+Results are appended to `--out`. The default, `bench/results/runs.jsonl`, already holds the recorded runs, and the runner skips any task, config and trial already recorded there without an error. So pass a new `--out` to get fresh numbers, and rerun the same command to resume after an interruption, such as hitting a usage limit. `r.<model>:<effort>` configs run a main session with this plugin loaded and record which rungs it spawned. `--warm` measures only the task turn of an already-warm session; that's the fair way to compare routed and solo cost, but it hasn't been run yet. `--summary bench/results/runs.jsonl` prints the table.
