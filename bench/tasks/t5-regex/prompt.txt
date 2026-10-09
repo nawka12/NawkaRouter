@@ -1,0 +1,1 @@
+Implement `search` in minire.py as described in its docstring. It must give exactly the same result as Python's re.search (span and groups) for all of the supported syntax, without using the re module. Add tests.

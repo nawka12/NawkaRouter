@@ -1,0 +1,1 @@
+`max_k_subarrays` in maxk.py returns correct results but is far too slow for production inputs, where n and k both go up to 200,000 and values are integers in [-10^9, 10^9]. Make it fast enough to handle n = 200,000 with any k in well under a minute (plain CPython, no extra packages), without changing any result.

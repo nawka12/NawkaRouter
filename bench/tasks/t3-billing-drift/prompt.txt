@@ -1,0 +1,1 @@
+Bug report from support: customers who sign up on the 31st get billed on Jan 31, then Feb 28, and then on the 28th every month after that. They should go back to the 31st (or the last day of the month when the month is shorter). There's a failing test in tests/test_periods.py. Please fix the bug.

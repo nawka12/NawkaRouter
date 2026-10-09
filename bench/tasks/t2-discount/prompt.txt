@@ -1,0 +1,1 @@
+Add support for a percentage discount on orders. `order_total` should take an optional `discount_pct` argument (a number from 0 to 100, default 0) that is applied to the subtotal before tax; values outside 0-100 should raise ValueError. Also expose it on the CLI as `--discount` (a percentage). Existing behavior must stay the same when no discount is given.

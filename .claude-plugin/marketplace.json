@@ -1,0 +1,13 @@
+{
+  "name": "nawka",
+  "description": "Local marketplace for nawka-router",
+  "owner": {
+    "name": "nawka12"
+  },
+  "plugins": [
+    {
+      "name": "nawka-router",
+      "source": "./"
+    }
+  ]
+}

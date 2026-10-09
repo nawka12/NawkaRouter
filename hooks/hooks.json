@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat \"${CLAUDE_PLUGIN_ROOT}/ROUTING.md\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -Eq '\"effort\"[[:space:]]*:[[:space:]]*\"max\"' && { echo 'nawka-router: effort max is banned. Top rung is nawka-router:opus-xhigh; if that failed, ask the user.' >&2; exit 2; }; exit 0"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'nawka-router: if this needs more than two tool calls, pick a rung first (haiku, sonnet-high, opus-medium, opus-high, opus-xhigh) per the routing policy; delegate instead of doing it yourself.'"
+          }
+        ]
+      }
+    ]
+  }
+}

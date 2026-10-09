@@ -1,0 +1,1 @@
+Our brand color is changing from blue (#2563eb) to rose (#e11d48), and the hover shade changes from #1d4ed8 to #be123c. Update the site's styles and markup accordingly.

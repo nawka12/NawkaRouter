@@ -1,0 +1,6 @@
+{
+  "name": "nawka-router",
+  "version": "0.1.0",
+  "description": "Lets the main model route work to Haiku/Sonnet/Opus 5.5 subagents at data-backed effort levels, escalating only on verified failure. Never uses max effort.",
+  "author": { "name": "nawka12" }
+}

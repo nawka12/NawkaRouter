@@ -1,0 +1,26 @@
+:root {
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --text: #111827;
+  --muted: #6b7280;
+  --bg: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #f9fafb;
+    --bg: #0b1220;
+  }
+}
+
+body { color: var(--text); background: var(--bg); font-family: system-ui, sans-serif; }
+
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 14px;
+}
+.btn-primary:hover { background: var(--brand-hover); }
+.btn-primary:focus-visible { outline: 2px solid rgba(37, 99, 235, 0.5); outline-offset: 2px; }
