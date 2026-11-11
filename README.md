@@ -41,7 +41,7 @@ claude --plugin-dir ./NawkaRouter
 
 ## Fable advisor (optional)
 
-`nawka-fable` is a second plugin in the same marketplace. It adds `nawka-fable:advisor`, which runs Fable 5.2 at high effort and only gives advice. The main model sends it one question, with the relevant code, errors and findings pasted into the brief, and gets back a recommendation, reasons, risks and a way to check it. Implementation still goes to the normal rungs. Fable costs $8/$40 per million tokens, twice Opus 5.5, so the advisor never reads, searches or edits the codebase; that would turn one billed answer into a tool loop at Fable rates. Claude Code won't launch a subagent with no tools, so the advisor's only tool is `TodoWrite`, which can't touch files.
+`nawka-fable` is a second plugin in the same marketplace. It adds `nawka-fable:advisor`, which runs Fable 5.2 at high effort and only gives advice. The main model sends it one question, with the relevant code, errors and findings pasted into the brief, and gets back a recommendation, reasons, risks and a way to check it. Implementation still goes to the normal rungs. Fable costs $8/$40 per million tokens, twice Opus 5.5, so the advisor never reads, searches or edits the codebase; that would turn one billed answer into a tool loop at Fable rates. Claude Code won't launch a subagent with no tools, so the advisor lists only `ToolSearch` (plus `TaskList` and `TodoWrite` as fallbacks for builds that still have them), none of which can touch files.
 
 Not every Claude plan includes Fable, so the advisor is off unless you install it. It also needs `nawka-router` installed.
 

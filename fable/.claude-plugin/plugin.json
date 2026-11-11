@@ -1,6 +1,6 @@
 {
   "name": "nawka-fable",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Optional add-on for nawka-router: a Fable 5.2 advisor the main model can consult on hard calls. Advice only, no codebase access. Install only if your plan includes Fable.",
   "author": { "name": "nawka12" },
   "license": "MIT"
