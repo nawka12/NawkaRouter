@@ -8,6 +8,10 @@
     {
       "name": "nawka-router",
       "source": "./"
+    },
+    {
+      "name": "nawka-fable",
+      "source": "./fable"
     }
   ]
 }

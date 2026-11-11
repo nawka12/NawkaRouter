@@ -10,6 +10,7 @@ A Claude Code plugin that lets your main model hand each task to the cheapest mo
 | Per-prompt nudge | `UserPromptSubmit` hook (one line) | Reminds the model to route before working. Without it, Sonnet knew the policy but still did tasks itself |
 | Rungs | `agents/*.md` | Subagents with the model and effort fixed in frontmatter: `haiku`, `sonnet-high`, `opus-medium`, `opus-high`, `opus-xhigh` |
 | Max guard | `PreToolUse` hook on `Agent` | Blocks any spawn that requests `effort: max` |
+| Fable advisor (optional add-on) | `fable/` (separate plugin `nawka-fable`) | Fable 5.2 @ high that advises the main thread on hard calls. It has no access to the codebase. See [Fable advisor](#fable-advisor-optional) |
 
 Delegation always goes down and escalation always goes up. A rung may hand mechanical sub-pieces to cheaper rungs (by default Claude Code allows subagents up to three layers below the main conversation; `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` changes that), but it never spawns its own rung or a stronger one. Instead it replies `ESCALATE:` with its findings, and the main thread picks the next rung. Haiku has no `Agent` tool.
 
@@ -19,6 +20,7 @@ Delegation always goes down and escalation always goes up. A rung may hand mecha
 
 - Claude Code with plugin support. The rungs set their model and effort through the subagent `model` and `effort` frontmatter fields.
 - Access to Haiku 5.5, Sonnet 5.5 and Opus 5.5. The rungs pin full model IDs (`claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`). If your account or provider names them differently, edit `model:` in `agents/*.md`.
+- Optional: access to Fable 5.2 (`claude-fable-5-2`) for the advisor add-on. Not every plan includes it.
 - The hooks are POSIX shell one-liners (`cat`, `grep`, `echo`).
 
 ## Install
@@ -36,6 +38,22 @@ To try it for a single session without installing it, clone the repo and point `
 git clone https://github.com/nawka12/NawkaRouter.git
 claude --plugin-dir ./NawkaRouter
 ```
+
+## Fable advisor (optional)
+
+`nawka-fable` is a second plugin in the same marketplace. It adds `nawka-fable:advisor`, which runs Fable 5.2 at high effort and only gives advice. The main model sends it one question, with the relevant code, errors and findings pasted into the brief, and gets back a recommendation, reasons, risks and a way to check it. Implementation still goes to the normal rungs. Fable costs $8/$40 per million tokens, twice Opus 5.5, so the advisor never reads, searches or edits the codebase; that would turn one billed answer into a tool loop at Fable rates. Claude Code won't launch a subagent with no tools, so the advisor's only tool is `TodoWrite`, which can't touch files.
+
+Not every Claude plan includes Fable, so the advisor is off unless you install it. It also needs `nawka-router` installed.
+
+```bash
+claude plugin install nawka-fable@nawka   # turn on (start a new session)
+claude plugin disable nawka-fable@nawka   # turn off
+claude plugin enable nawka-fable@nawka    # turn back on
+```
+
+When the add-on is off, the advisor agent and its policy section (`fable/ADVISOR.md`) don't load, so the main model never sees it. When it's on, the policy has the main thread consult it before committing to an expensive-to-undo design, after opus-high or opus-xhigh fails with no clear root cause, or to review a risky plan or diff.
+
+Why high effort: on the AA Intelligence Index v5.0.1, Fable 5.2 scores 62 at high ($9.08/task) and 62 at xhigh ($14.83/task), so xhigh costs 63% more for the same score. Max scores 65 at $26.54 and is banned like every max. Opus 5.5's best score on that index is 59, at max. AA doesn't list Fable 5.2 at medium. These numbers are from index v5.0.1; the table below uses an earlier index version, so don't compare scores across the two.
 
 ## The data behind the rungs
 
